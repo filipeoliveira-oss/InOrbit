@@ -3,7 +3,7 @@ import { DialogClose, DialogContent, DialogDescription, DialogTitle } from "./ui
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import { RadioGroup, RadioGroupIndicator, RadioGroupItem } from "./ui/radio-group";
-import { Button } from "./ui/button";
+import { Button } from "./ui/button_nlw";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";

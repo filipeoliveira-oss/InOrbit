@@ -2,7 +2,7 @@
 import logo from "../assets/logo-inorbit.svg";
 import ilustration from "../assets/lets-start.svg";
 import {Plus} from 'lucide-react'
-import { Button } from "../components/ui/button";
+import { Button } from "./ui/button_nlw";
 import { DialogTrigger } from "./ui/dialog";
 
 export default function EmptyGoals(){

@@ -1,5 +1,5 @@
 import { CheckCircle2, Plus } from "lucide-react";
-import { Button } from "./ui/button";
+import { Button } from "./ui/button_nlw";
 import { DialogTrigger } from "./ui/dialog";
 import InOrbitIcon from "../assets/inOrbitIcon";
 import { Progress, ProgressIndicator } from "./ui/progress-bar";
