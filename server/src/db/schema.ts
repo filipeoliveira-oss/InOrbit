@@ -20,7 +20,7 @@ export const goalCompletions = pgTable('goal_completion', {
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 })
 
-export const calendarMod = pgTable('calendar_mood', {
+export const calendarMood = pgTable('calendar_mood', {
     id: text('id')
         .primaryKey()
         .$defaultFn(() => createId()),
