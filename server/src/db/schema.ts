@@ -19,3 +19,21 @@ export const goalCompletions = pgTable('goal_completion', {
         .notNull(),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 })
+
+export const calendarMod = pgTable('calendar_mood', {
+    id: text('id')
+        .primaryKey()
+        .$defaultFn(() => createId()),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    date:timestamp('date', { withTimezone: true }).notNull(),
+    mood: text('mood'),
+    journal: text('journal')
+})
+
+// export const user = pgTable('users', {
+//     id: text('id')
+//         .primaryKey()
+//         .$defaultFn(() => createId()),
+//     name: text('name').notNull(),
+//     email: text('email').notNull()
+// })

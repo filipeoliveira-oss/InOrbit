@@ -17,61 +17,108 @@ import { z } from "zod"
 import { TextBox } from "@/components/ui/textBox"
 import { Button } from "@/components/ui/button_nlw"
 import inOrbitIcon from "../assets/logo-inorbit.svg"
+import createMood from "@/http/createMood"
+import { ToastContainer, toast } from 'react-toastify';
+
 const createCalendarSchema = z.object({
     mood: z.string(),
-    journal: z.string().max(500, 'Mensagem muito longa'),
+    journal: z.string().min(10).max(500, 'Mensagem muito longa'),
+    date: z.coerce.date()
 })
 
 export default function Calendar() {
-    const { register, control, formState, getValues, handleSubmit, watch } = useForm<z.infer<typeof createCalendarSchema>>({
+    const [date, setDate] = useState<Date>(new Date())
+    
+    const { register, control, formState, handleSubmit, watch, setValue } = useForm<z.infer<typeof createCalendarSchema>>({
         defaultValues: {
             journal: '',
-            mood: ''
+            mood: '',
+            date: date
         }
     })
-    const [mood, setMood] = useState<string>(questionMark)
-    const [date, setDate] = useState<Date | undefined>(new Date())
+    const [moodEmoji, setMoodEmoji] = useState<string>(questionMark)
+    const [dataError, setDataError] = useState(false)
+    const [dateError, setDateError] = useState(false)
     const journalW = watch('journal')
 
     function handleMood(mood: string) {
         switch (mood) {
             case 'happy':
-                setMood(happy)
+                setMoodEmoji(happy)
                 break;
             case 'sad':
-                setMood(sad)
+                setMoodEmoji(sad)
                 break;
             case 'angry':
-                setMood(angry)
+                setMoodEmoji(angry)
                 break;
             case 'relieved':
-                setMood(disapointed)
+                setMoodEmoji(disapointed)
                 break;
             case 'sick':
-                setMood(sick)
+                setMoodEmoji(sick)
                 break;
             case 'sleepy':
-                setMood(sleepy)
+                setMoodEmoji(sleepy)
                 break;
             case 'woozy':
-                setMood(woozy)
+                setMoodEmoji(woozy)
                 break;
             default:
-                setMood(questionMark)
+                setMoodEmoji(questionMark)
         }
     }
 
     function handleSaveMood(data: z.infer<typeof createCalendarSchema>) {
-        alert(data)
+
+        if(data.journal == '' && data.mood == ''){
+            setDataError(true)
+
+            return
+        }
+
+        if(data.date.setHours(0,0,0,0) > new Date().setHours(0,0,0,0)){
+            setDateError(true)
+
+            return
+        }
+
+        createMood({
+            mood: data.mood,
+            journal:data.journal,
+            date: data.date
+        }).then(() =>{
+            toast.success('Seu sentimento foi salvo')
+        }).catch(() =>{
+            toast.error('Ocorreu um erro no registro, tente novamente')
+        }).finally(() =>{
+            setDataError(false)
+            setDateError(false)
+        })
+    }
+
+    function handleDatePick(date:Date | undefined){
+        if(!date){
+            return null
+        } 
+        if(date.setHours(0,0,0,0) > new Date().setHours(0,0,0,0)){
+            setDateError(true)
+        }else{
+            setDate(date)
+            setValue('date', date)
+            setDateError(false)
+        }
     }
 
     return (
         <div className="h-screen py-10 max-w-[80%] px-5 mx-auto flex items-center justify-center flex-col">
+            <ToastContainer />
             <img src={inOrbitIcon} alt="In.Orbit Logo" className="h-28"/>
             <div className="flex w-full h-full">
-                <div className="w-full flex flex-col justify-center items-center flex-1">
+                <div className="w-full flex flex-col justify-center items-center flex-1 gap-4">
                     <DatePicker
                         mode="single"
+                        required
                         numberOfMonths={1}
                         locale={ptBR}
                         className="rounded-md pr-5 shadow w-full flex items-center"
@@ -85,8 +132,13 @@ export default function Calendar() {
                             day_selected:'bg-violet-500',
                         }}
                         selected={date}
-                        onSelect={setDate}
+                        onSelect={handleDatePick}
                     />
+                        <div className="h-5 self-start">
+                            {dateError && (
+                                <p className="text-red-400 text-sm">Você não pode usar uma data futura</p>
+                            )}
+                        </div>
                     <div>
                         Histórico da semana
                     </div>
@@ -97,8 +149,8 @@ export default function Calendar() {
                 <div className="flex-1 flex flex-col w-full pl-5 relative items-center">
                     {/* <MoodEmoji emoji={<SadFace/>}/> */}
                     <div className=" w-80 h-80 flex justify-center items-center ">
-                        {mood && (
-                            <img src={mood} alt="Current Mood" className="w-full h-full select-none " />
+                        {moodEmoji && (
+                            <img src={moodEmoji} alt="Current Mood" className="w-full h-full select-none " />
                         )}
                     </div>
 
@@ -151,7 +203,14 @@ export default function Calendar() {
                             )}
                         </div>
 
-                        <Button type="submit">Registrar dia</Button>
+                        <div className="w-full h-fit flex flex-col gap-2">
+                            <Button type="submit">Registrar dia</Button>
+                            <div className="h-5">
+                                {dataError && (
+                                    <p className="text-red-400 text-sm">Preencha pelo menos um dos campos</p>
+                                )}
+                            </div>
+                        </div>
                     </form>
 
                 </div>

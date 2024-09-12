@@ -10,7 +10,7 @@ import {
 import Login from './pages/Login'
 import Signup from './pages/Signup'
 import Calendar from './pages/Calendar'
-
+import 'react-toastify/dist/ReactToastify.css';
 const router = createBrowserRouter([
   {
     path:'/',
