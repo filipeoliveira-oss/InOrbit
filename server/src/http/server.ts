@@ -30,7 +30,7 @@ app.register(getPendingGoalsRoute)
 app.register(getWeekSummaryRoute)
 app.register(deleteGoalCompletionRoute)
 app.register(createMoodRoute)
-// app.register(getMoodDayRoute)
+app.register(getMoodDayRoute)
 app.register(getWeekMoodRoute)
 
 
