@@ -1,6 +1,6 @@
 
 import { db } from '../db'
-import { calendarMod} from '../db/schema'
+import { calendarMood} from '../db/schema'
 
 interface creategoalCompletionsRequest {
 	mood: string,
@@ -11,7 +11,7 @@ interface creategoalCompletionsRequest {
 export async function createMood({ mood, journal,date }: creategoalCompletionsRequest) {
 
 
-	const result = await db.insert(calendarMod).values({
+	const result = await db.insert(calendarMood).values({
         mood,
         journal,
         date: new Date(date)

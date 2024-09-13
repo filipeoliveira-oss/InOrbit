@@ -8,7 +8,7 @@ import { useState } from "react"
 import happy from '../assets/happy.png'
 import sad from '../assets/sad.png'
 import angry from '../assets/angry.png'
-import disapointed from '../assets/disapointed.png'
+import disappointed from '../assets/disappointed.png'
 import sick from '../assets/sick.png'
 import sleepy from '../assets/sleepy.png'
 import woozy from '../assets/woozy.png'
@@ -19,6 +19,9 @@ import { Button } from "@/components/ui/button_nlw"
 import inOrbitIcon from "../assets/logo-inorbit.svg"
 import createMood from "@/http/createMood"
 import { ToastContainer, toast } from 'react-toastify';
+import { useQuery, useQueryClient } from "@tanstack/react-query"
+import getWeekMood from "@/http/getWeekMood"
+import dayjs from "dayjs"
 
 const createCalendarSchema = z.object({
     mood: z.string(),
@@ -26,9 +29,24 @@ const createCalendarSchema = z.object({
     date: z.coerce.date()
 })
 
+interface weekMoodInterface {
+    mood: string;
+    date: Date;
+}
+
 export default function Calendar() {
+
+    const queryClient = useQueryClient()
     const [date, setDate] = useState<Date>(new Date())
-    
+    const [moodEmoji, setMoodEmoji] = useState<string>(questionMark)
+    const [dataError, setDataError] = useState(false)
+    const [dateError, setDateError] = useState(false)
+    const {data: weekMood} = useQuery({
+        queryKey:['weekMood'],
+        queryFn: getWeekMood,
+        staleTime: Infinity
+    })
+
     const { register, control, formState, handleSubmit, watch, setValue } = useForm<z.infer<typeof createCalendarSchema>>({
         defaultValues: {
             journal: '',
@@ -36,10 +54,40 @@ export default function Calendar() {
             date: date
         }
     })
-    const [moodEmoji, setMoodEmoji] = useState<string>(questionMark)
-    const [dataError, setDataError] = useState(false)
-    const [dateError, setDateError] = useState(false)
+
     const journalW = watch('journal')
+
+    const WeekDayMood = ({moodDay}:{moodDay:weekMoodInterface}) =>{
+        const weekDay = dayjs(moodDay.date).format('dddd')
+
+        function getEmoji(){
+            switch (moodDay.mood) {
+                case 'happy':
+                    return happy
+                case 'sad':
+                    return sad
+                case 'angry':
+                    return angry
+                case 'disappointed':
+                    return disappointed
+                case 'sick':
+                    return sick
+                case 'sleepy':
+                    return sleepy
+                case 'woozy':
+                    return woozy
+                default:
+                    return questionMark
+            }
+        }
+
+        return(
+            <div className="flex flex-col justify-center items-center min-w-20 h-full cursor-pointer px-1 ">
+                <img src={getEmoji()} alt="Current Mood" className="max-w-20 h-full select-none" />
+                <Label className="capitalize">{weekDay}</Label>
+            </div>
+        )
+    }
 
     function handleMood(mood: string) {
         switch (mood) {
@@ -52,8 +100,8 @@ export default function Calendar() {
             case 'angry':
                 setMoodEmoji(angry)
                 break;
-            case 'relieved':
-                setMoodEmoji(disapointed)
+            case 'disappointed':
+                setMoodEmoji(disappointed)
                 break;
             case 'sick':
                 setMoodEmoji(sick)
@@ -69,7 +117,7 @@ export default function Calendar() {
         }
     }
 
-    function handleSaveMood(data: z.infer<typeof createCalendarSchema>) {
+    async function handleSaveMood(data: z.infer<typeof createCalendarSchema>) {
 
         if(data.journal == '' && data.mood == ''){
             setDataError(true)
@@ -83,12 +131,13 @@ export default function Calendar() {
             return
         }
 
-        createMood({
+        await createMood({
             mood: data.mood,
             journal:data.journal,
             date: data.date
         }).then(() =>{
             toast.success('Seu sentimento foi salvo')
+            queryClient.invalidateQueries({queryKey:['weekMood']})
         }).catch(() =>{
             toast.error('Ocorreu um erro no registro, tente novamente')
         }).finally(() =>{
@@ -109,6 +158,7 @@ export default function Calendar() {
             setDateError(false)
         }
     }
+
 
     return (
         <div className="h-screen py-10 max-w-[80%] px-5 mx-auto flex items-center justify-center flex-col">
@@ -136,11 +186,18 @@ export default function Calendar() {
                     />
                         <div className="h-5 self-start">
                             {dateError && (
-                                <p className="text-red-400 text-sm">Você não pode usar uma data futura</p>
+                                <p className="text-red-400 text-sm">Você não pode selecionar uma data futura</p>
                             )}
                         </div>
-                    <div>
-                        Histórico da semana
+                    <div className="flex flex-col gap-4 w-full  items-center h-fit min-h-24">
+                        <Label>Histórico da semana <span className="text-zinc-400">({dayjs().startOf('week').format('DD MMM')} - {dayjs().endOf('week').format('DD MMM')})</span></Label>
+                        <div className="flex w-full h-full gap-3 justify-center">
+                            {weekMood && (weekMood.map((day:weekMoodInterface) =>{
+                                return(
+                                    <WeekDayMood  moodDay={day}/>
+                                )
+                            }))}
+                        </div>
                     </div>
                 </div>
 
@@ -172,7 +229,7 @@ export default function Calendar() {
                                             <span className="text-zinc-300 text-sm font-medium leading-none">Estressado</span>
                                         </RadioGroupItem>
 
-                                        <RadioGroupItem value="desapointed" onClick={() => handleMood('relieved')}>
+                                        <RadioGroupItem value="disappointed" onClick={() => handleMood('disappointed')}>
                                             <span className="text-zinc-300 text-sm font-medium leading-none">Desapontado</span>
                                         </RadioGroupItem>
 
